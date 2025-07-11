@@ -34,6 +34,13 @@ impl<T> External<T> {
         storage: NonNull<ChannelStorage<T>>,
         release: fn(NonNull<ChannelStorage<T>>),
     ) -> Self {
+        // SAFETY: The caller guarantees that no `&mut` exclusive references
+        // exist, so creating a shared reference is valid.
+        let storage_ref = unsafe { storage.as_ref() };
+
+        // The first thing we need to do is initialize the storage with a clean `Channel<T>`.
+        storage_ref.channel.get().write(Channel::new());
+
         External {
             ptr: storage,
             release,
