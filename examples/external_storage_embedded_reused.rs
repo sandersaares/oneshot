@@ -1,9 +1,9 @@
-use core::ptr::NonNull;
-
-use oneshot::ChannelStorage;
-
 #[cfg(feature = "std")]
 fn main() {
+    use core::ptr::NonNull;
+
+    use oneshot::ChannelStorage;
+
     struct Container {
         generation: usize,
 

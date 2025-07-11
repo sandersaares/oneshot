@@ -1,9 +1,9 @@
-use core::ptr::NonNull;
-
-use oneshot::ChannelStorage;
-
 #[cfg(feature = "std")]
 fn main() {
+    use core::ptr::NonNull;
+
+    use oneshot::ChannelStorage;
+
     let storage = ChannelStorage::<usize>::new();
 
     // SAFETY: We promise that no other channel is using this storage and that it stays alive

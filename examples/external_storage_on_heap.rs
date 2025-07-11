@@ -1,9 +1,9 @@
-use core::ptr::NonNull;
-
-use oneshot::ChannelStorage;
-
 #[cfg(feature = "std")]
 fn main() {
+    use core::ptr::NonNull;
+
+    use oneshot::ChannelStorage;
+
     // This is functionally identical to just using `oneshot::channel()`.
     let storage = NonNull::from(Box::leak(Box::new(ChannelStorage::<usize>::new())));
 
