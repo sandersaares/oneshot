@@ -2,6 +2,7 @@ use core::ptr::NonNull;
 
 use oneshot::ChannelStorage;
 
+#[cfg(feature = "std")]
 fn main() {
     let storage = ChannelStorage::<usize>::new();
 
@@ -13,4 +14,9 @@ fn main() {
 
     sender.send(1234).unwrap();
     assert_eq!(receiver.recv().unwrap(), 1234);
+}
+
+#[cfg(not(feature = "std"))]
+fn main() {
+    panic!("This example is only for when the \"std\" feature is used");
 }

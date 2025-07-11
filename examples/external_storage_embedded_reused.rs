@@ -2,6 +2,7 @@ use core::ptr::NonNull;
 
 use oneshot::ChannelStorage;
 
+#[cfg(feature = "std")]
 fn main() {
     struct Container {
         generation: usize,
@@ -37,4 +38,9 @@ fn main() {
 
     sender.send(5678).unwrap();
     assert_eq!(receiver.recv().unwrap(), 5678);
+}
+
+#[cfg(not(feature = "std"))]
+fn main() {
+    panic!("This example is only for when the \"std\" feature is used");
 }
