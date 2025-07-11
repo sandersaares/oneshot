@@ -188,9 +188,7 @@ pub use errors::*;
 
 /// Creates a new oneshot channel and returns the two endpoints, [`Sender`] and [`Receiver`].
 pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
-    // SAFETY: This implicitly calls `initialize()` on the storage, so we are not allowed
-    // to call it again. OK, we do not.
-    let storage = unsafe { Global::<T>::new() };
+    let storage = Global::<T>::new();
 
     (
         Sender {
@@ -199,6 +197,37 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
         },
         Receiver {
             storage,
+            _invariant: PhantomData,
+        },
+    )
+}
+
+/// Creates a new oneshot channel using a custom object to store its internal state,
+/// returning the two endpoints, [`Sender`] and [`Receiver`].
+///
+/// # Safety
+///
+/// The caller must guarantee that the provided `ChannelStorage<T>` pointer is valid and
+/// the storage is not concurrently in use by any other `oneshot` channel.
+///
+/// The caller must guarantee that no `&mut` exclusive references are created to the
+/// `ChannelStorage<T>` (including to its parent object if embedded into another type)
+/// for the lifetime of the channel and any associated error types (i.e. until
+/// the `release` fn is called).
+pub unsafe fn channel_with_storage<T>(
+    storage: NonNull<ChannelStorage<T>>,
+    release: fn(NonNull<ChannelStorage<T>>),
+) -> (Sender<T, External<T>>, Receiver<T, External<T>>) {
+    // SAFETY: Forwarding the safety requirements to the caller.
+    let external = unsafe { External::new(storage, release) };
+
+    (
+        Sender {
+            storage: external.clone(),
+            _invariant: PhantomData,
+        },
+        Receiver {
+            storage: external,
             _invariant: PhantomData,
         },
     )

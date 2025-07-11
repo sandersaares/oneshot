@@ -14,14 +14,6 @@ pub trait Storage<T>: StoragePrivate<T> {}
 ///
 /// Implementations must implement the usage model described above, acting as pointers.
 pub(crate) unsafe trait StoragePrivate<T> {
-    /// Initializes the storage with a new `Channel<T>`, overwriting existing contents.
-    ///
-    /// # Safety
-    ///
-    /// This must not be called more than once and must not be called after `release()`.
-    #[expect(dead_code, reason = "future implementations will use this")]
-    unsafe fn initialize(&mut self);
-
     /// Releases the capacity that provides this storage.
     ///
     /// This will drop the `Channel<T>` and invalidate all clones of this storage.

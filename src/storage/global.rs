@@ -7,18 +7,17 @@ use crate::alloc::boxed::Box;
 #[cfg(oneshot_loom)]
 use crate::loombox::Box;
 
-/// The storage of the inner state of a channel is allocated via the Rust global allocator.
+/// Marker type indicating that the inner state storage of a channel is allocated via the
+/// Rust global allocator.
 #[derive(Debug)]
 pub struct Global<T> {
+    // Not actually a marker type but as far as the public API is concerned,
+    // it is a marker type because it is never created/referenced by user code.
     ptr: NonNull<Channel<T>>,
 }
 
 impl<T> Global<T> {
-    /// # Safety
-    ///
-    /// The caller must not call `initialize()` - on this implementation, `new()` implicitly
-    /// calls `initialize()` already, so calling it again would violate the trait safety contract.
-    pub(crate) unsafe fn new() -> Self {
+    pub(crate) fn new() -> Self {
         let ptr = NonNull::from(Box::leak(Box::new(Channel::new())));
 
         Global { ptr }
@@ -48,15 +47,6 @@ unsafe impl<T> StoragePrivate<T> for Global<T> {
         // SAFETY: Yes, our pointer is valid and points to a `Channel<T>`.
         // The caller is responsible for ensuring that `initialize()` has been called.
         unsafe { self.ptr.as_ref() }
-    }
-
-    unsafe fn initialize(&mut self) {
-        // SAFETY: This is a valid location for a `Channel<T>`, and we are initializing it.
-        // The caller is responsible for ensuring that this is not called more than once per family.
-        // The caller is also responsible for ensuring that `release()` has not been called on the family.
-        unsafe {
-            self.ptr.as_ptr().write(Channel::new());
-        }
     }
 
     unsafe fn release(&mut self) {
